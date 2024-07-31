@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<title>개인정보 수정</title>
+<link rel="stylesheet" th:href="@{/css/main.css}">
+<script th:src="@{/js/jquery-3.7.1.min.js}"></script>
+<script>
+$(document).ready(function() {
+	$('#updateform').submit(validation);
+});
+
+function validation() {
+	let pw = $('#password').val();
+	let pw2 = $('#password2').val();
+	let name = $('#name').val();
+
+	if (pw != '' && (pw.length < 3 || pw.length > 10)) {
+		alert("비밀번호는 3~10자로 입력하세요.");
+		return false;
+	}
+	if (pw != pw2) {
+		alert("비밀번호를 정확하게 입력하세요.");
+		return false;
+	}
+	if (name == '') {
+		alert("이름을 입력하세요.");
+		return false;
+	}
+	return true;
+}
+
+//아이디중복확인 버튼 클릭시 새창 열기
+function winOpen() {
+	//http://localhost:8888/member/idCheck
+	window.open('idCheck', 'idWin', 
+		'left=500,top=300,width=400,height=300,location=no,titlebar=no');
+}
+</script>
+</head>
+<body>
+<header>
+<h1>[ 개인정보수정 ]</h1>
+</header>
+<section>
+<form id="updateform" th:action="@{/member/info}" method="post">
+<table>
+	<tr>
+		<th>비밀번호</th>
+		<td><input type="password" name="memberPassword" id="password" placeholder="비밀번호 입력"><br>
+		<input type="password" id="password2" placeholder="비밀번호 다시 입력"></td>
+	</tr>
+	<tr>
+		<th>이름</th>
+		<td><input type="text" name="memberName" id="name" th:value="${member.memberName}" placeholder="이름 입력"></td>
+	</tr>
+	<tr>
+		<th>이메일</th>
+		<td><input type="text" name="email" id="email" th:value="${member.email}" placeholder="이메일 입력"></td>
+	</tr>
+	<tr>
+		<th>전화번호</th>
+		<td><input type="text" name="phone" th:value="${member.phone}" placeholder="전화번호 입력"></td>
+	</tr>
+	<tr>
+		<th>주소</th>
+		<td><input type="text" name="address" th:value="${member.address}" placeholder="주소 입력" style="width:300px;"></td>
+	</tr>
+</table>
+<br>
+
+<input type="submit" value="수정" />
+<input type="reset" value="다시 쓰기" />
+
+</form>	
+</section>
+</body>
+</html>
