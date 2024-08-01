@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.datasa.web5.domain.dto.BoardDTO;
 import net.datasa.web5.security.AuthenticatedUser;
 import net.datasa.web5.service.BoardService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,11 +25,43 @@ public class BoardController {
 
     private final BoardService boardService;
 
+    //springframework의 value
+    @Value("${board.pageSize}")
+    int pageSize;
+
+    @Value("${board.linkSize}")
+    int linkSize;
+
+    @Value("${board.uploadPath}")
+    String uploadPath;
+
+    /**
+     * 글 목록 보기
+     *
+     * @param page
+     * @param searchType
+     * @param searchWord
+     * @param model
+     * @return
+     */
     @GetMapping("list")
-    public String list(Model model) {
-        // 서비스에서 전체 글목록 전달받음
-        // 글목록을 모델에 저장하고 HTML로 포워딩
-        model.addAttribute("boardList", boardService.getList());
+    public String list(
+            @RequestParam(value = "page", defaultValue = "1") int page
+            , @RequestParam(value = "searchType", defaultValue = "") String searchType
+            , @RequestParam(value = "searchWord", defaultValue = "") String searchWord
+            , Model model) {
+        log.debug("properties의 값 : pageSize={}, linkSize={}, uploadpath={}", pageSize, linkSize, uploadPath);
+        log.debug("요쳥 파라미터 : page={}, searchType={}, searchWord={}", page, searchType, searchWord);
+        Page<BoardDTO> boardPage = boardService.getList(page, pageSize, searchType, searchWord);
+        log.debug("boardPage.getContent() = {}", boardPage.getContent());
+        log.debug("boardPage.getSize() = {}", boardPage.getSize());
+
+        model.addAttribute("boardPage", boardPage);
+        model.addAttribute("page", page);
+        model.addAttribute("linkSize", linkSize);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchWord", searchWord);
+
         return "boardView/list";
     }
 

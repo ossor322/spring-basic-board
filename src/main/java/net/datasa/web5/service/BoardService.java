@@ -8,10 +8,11 @@ import net.datasa.web5.domain.dto.BoardDTO;
 import net.datasa.web5.domain.entity.BoardEntity;
 import net.datasa.web5.repository.BoardRepository;
 import net.datasa.web5.repository.MemberRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Transactional
@@ -48,28 +49,74 @@ public class BoardService {
                 .memberName(boardEntity.getMember().getMemberName())
                 .title(boardEntity.getTitle())
                 .contents(boardEntity.getContents())
+                .createDate(boardEntity.getCreateDate())
+                .updateDate(boardEntity.getUpdateDate())
                 .viewCount(boardEntity.getViewCount())
                 .likeCount(boardEntity.getLikeCount())
                 .fileName(boardEntity.getFileName())
                 .build();
     }
 
-    public List<BoardDTO> getList() {
-        // BoardRepository의 메소드를 호출하여 게시판의 모든 글 정보를 조회
-        // 엔티티의 개수만큼 반복하면서 엔티티의 값으 BoardDTO 객체를 생성하여 저장
-        Sort sort 
-        return boardRepository
-                .findAll().stream().map(boardEntity ->
-                        BoardDTO.builder()
-                                .boardNum(boardEntity.getBoardNum())
-                                .memberId(boardEntity.getMember().getMemberId())
-                                .memberName(boardEntity.getMember().getMemberName())
-                                .title(boardEntity.getTitle())
-                                .contents(boardEntity.getContents())
-                                .viewCount(boardEntity.getViewCount())
-                                .likeCount(boardEntity.getLikeCount())
-                                .fileName(boardEntity.getFileName())
-                                .build())
-                .collect(Collectors.toList());
+    /**
+     * 검색 결과 글목록을 지정한 한페이지 분량의 Page 객체로 리턴
+     *
+     * @param page       현재 페이지
+     * @param pageSize   페이지당 글 수
+     * @param searchType 검색 조건 (제목검색 : title, 본문검색:contents, 작성자검색:id)
+     * @param searchWord 검색어
+     * @return 게시글 목록 정보
+     */
+    public Page<BoardDTO> getList(int page, int pageSize, String searchType, String searchWord) {
+        // 조회 조건을 담은 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.Direction.DESC, "boardNum");
+        // repository의 메소드로 Pageable 전달하여 조회, Page 리턴 받음
+        return switch (searchType) {
+            case "title" -> boardRepository.findByTitleContaining(searchWord, pageable)
+                    .map(this::convertToDTO);
+            case "contents" -> boardRepository.findByContentsContaining(searchWord, pageable)
+                    .map(this::convertToDTO);
+            case "id" -> boardRepository.findByMemberMemberIdContaining(searchWord, pageable)
+                    .map(this::convertToDTO);
+            default -> boardRepository.findAll(pageable)
+                    .map(this::convertToDTO);
+        };
     }
+
+//    public List<BoardDTO> getList(int page, int pageSize, String searchType, String searchWord) {
+//        // BoardRepository의 메소드를 호출하여 게시판의 모든 글 정보를 조회
+//        // 엔티티의 개수만큼 반복하면서 엔티티의 값으 BoardDTO 객체를 생성하여 저장
+//        Sort sort = Sort.by(Sort.DEFAULT_DIRECTION, "boardNum");
+//        return boardRepository
+//                .findByTitleContaining(searchWord, sort).stream().map(boardEntity ->
+//                        BoardDTO.builder()
+//                                .boardNum(boardEntity.getBoardNum())
+//                                .memberId(boardEntity.getMember().getMemberId())
+//                                .memberName(boardEntity.getMember().getMemberName())
+//                                .title(boardEntity.getTitle())
+//                                .contents(boardEntity.getContents())
+//                                .createDate(boardEntity.getCreateDate())
+//                                .updateDate(boardEntity.getUpdateDate())
+//                                .viewCount(boardEntity.getViewCount())
+//                                .likeCount(boardEntity.getLikeCount())
+//                                .fileName(boardEntity.getFileName())
+//                                .build())
+//                .collect(Collectors.toList());
+//    }
+
+    private BoardDTO convertToDTO(BoardEntity boardEntity) {
+        return BoardDTO.builder()
+                .boardNum(boardEntity.getBoardNum())
+                .memberId(boardEntity.getMember().getMemberId())
+                .memberName(boardEntity.getMember().getMemberName())
+                .title(boardEntity.getTitle())
+                .contents(boardEntity.getContents())
+                .createDate(boardEntity.getCreateDate())
+                .updateDate(boardEntity.getUpdateDate())
+                .viewCount(boardEntity.getViewCount())
+                .likeCount(boardEntity.getLikeCount())
+                .originalName(boardEntity.getOriginalName())
+                .fileName(boardEntity.getFileName())
+                .build();
+    }
+
 }

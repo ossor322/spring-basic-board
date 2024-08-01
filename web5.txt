@@ -64,8 +64,15 @@ create table web5_member (
    <div th:if="${param.error}">ID또는 비밀번호가 틀립니다.</div>
 
 <div th:if="${param.error}"><script>alert('에러');</script></div>
-  
 
+
+ [8월 1일 페이지 처리]
+[글 목록 요청 예]
+/board/list
+/board/list?searchType=title&searchWord=테스트
+/board/list?page=5
+/board/list?searchType=&searchWord=&page=3
+/board/list?searchType=title&searchWord=테스트&page1
 
 
 
